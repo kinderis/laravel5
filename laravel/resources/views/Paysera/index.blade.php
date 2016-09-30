@@ -1,5 +1,10 @@
 @extends('app')
 
 @section('content')
-index.blade.php
+    <div class="content">
+        <div class="title m-b-md">
+            Laravel
+        </div>
+         <pre>{{print_r($data)}}</pre>
+    </div>
 @stop
