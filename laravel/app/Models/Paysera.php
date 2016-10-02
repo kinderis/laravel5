@@ -29,26 +29,53 @@ class Paysera extends Model
         $csvFile = public_path().'/csv/operation_x.csv';
         $data = csv_to_array($csvFile);
 
-        function get_user_cash ($data,$uid,$date){
+        function get_user_cash ($data,$uid,$date,$select){
             $lastMonday = strtotime($date." last Monday ");
             $nextSunday = strtotime($date." next Sunday ");
+            $ar_curse = array ('USD' => '1.1497', 'JPY'=> '129.53' );
 
+            $ar = array();
             foreach ($data as $dates) {
                 if($dates['operation'] == 'cash_out' && $dates['uid'] == $uid && ($lastMonday <= strtotime($dates['date']) && $nextSunday >= strtotime($dates['date'])))
                 {
-                   $ar[] = $dates;
+                   (array_key_exists($dates['currency'],$ar_curse))? $cash_eu = ($dates['cash']/$ar_curse[$dates['currency']]): $cash_eu = $dates['cash'];
+                   $ar[] = array(
+                       'date' => $dates['date'],
+                       'uid' => $dates['uid'],
+                       'cash_eu' => $cash_eu,
+                       'cash' => $dates['cash']
+                   );
                 }
             }
-            return $ar;
+
+            $cash = 0;
+            $count_Ar = (count($ar)-1);
+            $cash_f = array();
+            for ($i=0;$i<=$count_Ar;$i++){
+                $cash += $ar[$i]['cash_eu'];
+                switch ($i) {
+                    case 0;
+                        ($cash <= '1000')? $com = '0' : $com = (($cash-1000)*0.3);
+                        break;
+                    case 1;
+                        if ($cash < '2000'){$com = ((($cash-1000)*0.3)/100);}
+                        break;
+                    case $i >= 2;
+                        $com = (($ar[$i]['cash']*0.3)/100);
+                        break;
+                }
+                $cash_f[$ar[$i]['date']."_".$ar[$i]['cash']."_".$select] = $com;
+            }
+            return $cash_f;
         }
 
-         $data = get_user_cash($data, '1','2016-02-15');
-
-        $data = $data;
-        /* Komisinio paskaicivimas */
+        /* Komisinio paskaiciavimas */
         function get_cash_in ($data){
 
+            $i =0;
+            $com_array = array();
             foreach ($data as $dates) {
+                $i++;
                 switch ($dates['operation']) {
                     case "cash_in":
                         $com = (($dates['cash']*0.03)/100);
@@ -57,7 +84,11 @@ class Paysera extends Model
                     case "cash_out":
                         $com = (($dates['cash']*0.3)/100);
                         if ($dates['person'] == 'juridical'){($com < 0.5 ) ? $com = '0.50' : $com = number_format($com, 2, '.', '');}
-                        elseif ($dates['person'] == 'natural') { ($dates['cash'] > '1000' )? $com = (($dates['cash']*0.3)/100): $com = "0.00";}
+                        elseif ($dates['person'] == 'natural') {
+                            $com = get_user_cash($data,$dates['uid'],$dates['date'],$i);
+                            $com = $com[$dates['date']."_".$dates['cash']."_".$i];
+                            $com = number_format(round( $com, 3, PHP_ROUND_HALF_UP), 2, '.', '');
+                        }
                         break;
                 }
                 $com_array[] = $com;
@@ -65,12 +96,6 @@ class Paysera extends Model
             return $com_array;
         }
         $cash_in = get_cash_in ($data);
-       # $cash_in[] = array_search('cash_in', array_column($data, 'operation'));
-        #return $cash_in;
-        return $data;
-    }
-
-    public function scopeResult ($id) {
-
+        return $cash_in;
     }
 }

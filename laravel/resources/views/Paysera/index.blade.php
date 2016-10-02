@@ -5,6 +5,10 @@
         <div class="title m-b-md">
             Laravel
         </div>
-         <pre>{{print_r($data)}}</pre>
+        <p>
+        @for ($i = 0; $i < count($data); $i++)
+            {{ $data[$i] }}<br>
+        @endfor
+        </p>
     </div>
 @stop
