@@ -62,7 +62,6 @@ class Paysera extends Model
                         break;
                     case 1;
                         if (($cash-$ar[$i]['cash_eu']) >= $limt_fre) {$com = (($ar[$i]['cash']*0.3)/100);}
-                        #else {$com = ((($cash-$limt_fre)*0.3)/100);}
                         else {$com = ((($ar[$i]['cash']-($limt_fre*($ar_curse[$ar[$i]['currency']])))*0.3)/100);}
                         break;
                     case $i >= 2;
