@@ -3,7 +3,7 @@
 @section('content')
     <div class="content">
         <div class="title m-b-md">
-            Laravel
+            Commission
         </div>
         <p>
         @for ($i = 0; $i < count($data); $i++)

@@ -29,10 +29,12 @@ class Paysera extends Model
         $csvFile = public_path().'/csv/operation_x.csv';
         $data = csv_to_array($csvFile);
 
+        /* komisinio fiziniam asmeniui paskaiciavimas */
         function get_user_cash ($data,$uid,$date,$select){
             $lastMonday = strtotime($date." last Monday ");
             $nextSunday = strtotime($date." next Sunday ");
-            $ar_curse = array ('USD' => '1.1497', 'JPY'=> '129.53' );
+            $ar_curse = array ('EUR' => '1','USD' => '1.1497', 'JPY'=> '129.53' );
+            $limt_fre = '1000';
 
             $ar = array();
             foreach ($data as $dates) {
@@ -43,7 +45,8 @@ class Paysera extends Model
                        'date' => $dates['date'],
                        'uid' => $dates['uid'],
                        'cash_eu' => $cash_eu,
-                       'cash' => $dates['cash']
+                       'cash' => $dates['cash'],
+                       'currency' => $dates['currency']
                    );
                 }
             }
@@ -55,10 +58,12 @@ class Paysera extends Model
                 $cash += $ar[$i]['cash_eu'];
                 switch ($i) {
                     case 0;
-                        ($cash <= '1000')? $com = '0' : $com = (($cash-1000)*0.3);
+                        ($cash <= $limt_fre)? $com = '0' : $com = ((($ar[$i]['cash']-($limt_fre*($ar_curse[$ar[$i]['currency']])))*0.3)/100);
                         break;
                     case 1;
-                        if ($cash < '2000'){$com = ((($cash-1000)*0.3)/100);}
+                        if (($cash-$ar[$i]['cash_eu']) >= $limt_fre) {$com = (($ar[$i]['cash']*0.3)/100);}
+                        #else {$com = ((($cash-$limt_fre)*0.3)/100);}
+                        else {$com = ((($ar[$i]['cash']-($limt_fre*($ar_curse[$ar[$i]['currency']])))*0.3)/100);}
                         break;
                     case $i >= 2;
                         $com = (($ar[$i]['cash']*0.3)/100);
