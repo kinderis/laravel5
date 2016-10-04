@@ -11,7 +11,8 @@ class PayseraControler extends Controller
     //
     public function index(Paysera $paysera)
     {
-        $data = $paysera->getResulData();
+        $csvFile = public_path().'/csv/operation_x.csv';
+        $data = $paysera->getResulData($csvFile);
         return view('Paysera.index',['data' => $data]);
     }
 }
